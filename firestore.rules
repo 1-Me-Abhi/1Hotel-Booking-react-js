@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Check if user is an admin
+    function isAdmin() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
+    // Allow users to read and update only their own profile data
+    match /users/{userId} {
+      // Only allow read and update if the user is authenticated 
+      // and the user ID matches the document ID
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow creation if authenticated (when registering)
+      allow create: if request.auth != null;
+      
+      // Admin can read any user data
+      allow read: if isAdmin();
+    }
+    
+    // Additional collections can be added here with appropriate rules
+    // For example, bookings collection for hotel reservations
+    match /bookings/{bookingId} {
+      // Allow users to read and manage their own bookings
+      allow read, write: if request.auth != null && 
+                           resource.data.userId == request.auth.uid;
+      
+      // Admin can read and manage all bookings
+      allow read, write: if isAdmin();
+    }
+    
+    // For public data like hotel info, room types, etc.
+    match /rooms/{roomId} {
+      // Anyone can read room data
+      allow read: if true;
+      
+      // Only admins can modify
+      allow write: if isAdmin();
+    }
+  }
+} 
