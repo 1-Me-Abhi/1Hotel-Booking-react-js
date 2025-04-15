@@ -252,3 +252,25 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 👨‍💻 Contributors
 
 - [Abhishek](https://github.com/1-Me-Abhi) - Lead Developer
+
+## 👁️ Screenshots
+
+Here are some previews of the application:
+
+### Home Page
+![Home Page](./screenshots/Screenshot%202025-04-15%20144629.png)
+
+### Room Listings
+![Room Listings](./screenshots/Screenshot%202025-04-15%20144738.png)
+
+### Room Details
+![Room Details](./screenshots/Screenshot%202025-04-15%20144811.png)
+
+### Booking Process
+![Booking Process](./screenshots/Screenshot%202025-04-15%20144840.png)
+
+### User Profile
+![User Profile](./screenshots/Screenshot%202025-04-15%20144910.png)
+
+### Admin Dashboard
+![Admin Dashboard](./screenshots/Screenshot%202025-04-15%20145641.png)
