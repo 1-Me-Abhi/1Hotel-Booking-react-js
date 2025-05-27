@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { FaCreditCard, FaPaypal, FaMoneyBillWave, FaArrowLeft, FaCheck, FaSpinner } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import PageTransition from '../components/PageTransition';
+import bookingService from '../services/bookingService';
 
 const cardVariants = {
   hover: { scale: 1.03, boxShadow: "0px 5px 15px rgba(0,0,0,0.1)" },
@@ -128,7 +129,7 @@ const Checkout = () => {
     return true;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (paymentMethod === 'credit-card' && !validateCreditCardForm()) {
@@ -138,13 +139,25 @@ const Checkout = () => {
     setError('');
     setIsProcessing(true);
     
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
+      // Create the booking data
+      const newBooking = {
+        roomId: bookingData.roomId,
+        checkIn: bookingData.checkInDate,
+        checkOut: bookingData.checkOutDate,
+        specialRequests: `Guests: ${bookingData.adult} Adult(s), ${bookingData.children} Child(ren)`
+      };
+
+      // Create the booking
+      const response = await bookingService.createBooking(newBooking);
+      
       setIsProcessing(false);
       setIsPaymentComplete(true);
-      
-      // In a real app, you would send booking details to the server here
-    }, 2000);
+    } catch (err) {
+      console.error('Booking error:', err);
+      setError(err.response?.data?.message || 'Failed to create booking. Please try again.');
+      setIsProcessing(false);
+    }
   };
 
   const handleBookingComplete = () => {

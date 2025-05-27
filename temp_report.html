@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Hotel Booking Application - Project Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #333;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .mermaid {
+            margin: 20px 0;
+            text-align: center;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="content"></div>
+    <script>
+        // Initialize mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose'
+        });
+
+        // Function to convert markdown to HTML
+        function convertMarkdownToHtml(markdown) {
+            return marked.parse(markdown);
+        }
+
+        // Function to process mermaid diagrams
+        function processMermaidDiagrams() {
+            document.querySelectorAll('.mermaid').forEach((element) => {
+                mermaid.render('mermaid-' + Math.random(), element.textContent).then(({svg}) => {
+                    element.innerHTML = svg;
+                });
+            });
+        }
+
+        // Fetch the markdown content
+        fetch('PROJECT_REPORT.md')
+            .then(response => response.text())
+            .then(markdown => {
+                document.getElementById('content').innerHTML = convertMarkdownToHtml(markdown);
+                processMermaidDiagrams();
+            });
+    </script>
+</body>
+</html> 

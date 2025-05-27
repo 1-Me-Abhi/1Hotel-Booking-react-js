@@ -1,18 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  updateProfile,
-  signInWithPopup
-} from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/config';
-import { saveUserData, checkUserIsAdmin } from '../firebase/userService';
 
 // Create the context
 const AuthContext = createContext();
+
+// API base URL
+const API_URL = 'http://localhost:5000/api';
 
 // Create a provider component
 export const AuthProvider = ({ children }) => {
@@ -21,55 +13,82 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Check if user is admin
-  const checkAdminStatus = async (user) => {
-    if (!user) {
+  // Fetch user profile
+  const fetchUserProfile = async (token) => {
+    try {
+      const response = await fetch(`${API_URL}/users/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+
+      const userData = await response.json();
+      setCurrentUser(userData);
+      setIsAdmin(userData.isAdmin);
+      return userData;
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+      localStorage.removeItem('token');
+      setCurrentUser(null);
       setIsAdmin(false);
-      return;
+    } finally {
+      setLoading(false);
     }
-    
-    const adminStatus = await checkUserIsAdmin(user.uid);
-    setIsAdmin(adminStatus);
   };
 
-  // Monitor auth state changes
-  useEffect(() => {
-    setLoading(true);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("Auth state changed:", user ? "User logged in" : "No user");
-      setCurrentUser(user);
-      
-      // Check admin status whenever user changes
-      if (user) {
-        checkAdminStatus(user);
-      } else {
-        setIsAdmin(false);
-      }
-      
-      setLoading(false);
-    }, (error) => {
-      console.error("Auth state change error:", error);
-      setError(error.message);
-      setLoading(false);
-    });
+  // Refresh user data
+  const refreshUserData = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      await fetchUserProfile(token);
+    }
+  };
 
-    // Cleanup subscription
-    return unsubscribe;
+  // Check if user is logged in on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchUserProfile(token);
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   // Register new user
-  const register = async (email, password, displayName) => {
+  const register = async (email, password, displayName, phoneNumber, address, pincode, dateOfBirth) => {
     setError('');
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // Update profile with display name
-      await updateProfile(userCredential.user, {
-        displayName: displayName
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name: displayName,
+          phoneNumber,
+          address,
+          pincode,
+          dateOfBirth
+        })
       });
+
+      const data = await response.json();
       
-      return userCredential.user;
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      localStorage.setItem('token', data.token);
+      await fetchUserProfile(data.token);
+      return data.user;
     } catch (err) {
+      console.error('Registration error:', err);
       setError(err.message);
       throw err;
     }
@@ -79,38 +98,42 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setError('');
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      return userCredential.user;
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      localStorage.setItem('token', data.token);
+      await fetchUserProfile(data.token);
+      return data.user;
     } catch (err) {
       setError(err.message);
       throw err;
     }
   };
 
-  // Sign in with Google
+  // Sign in with Google (Note: This needs to be implemented on the backend)
   const googleLogin = async () => {
     setError('');
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      
-      // Check if this is a new user (first time sign-in with Google)
-      const isNewUser = result._tokenResponse.isNewUser;
-      
-      if (isNewUser) {
-        // Save user data to Firestore for new Google users
-        await saveUserData(result.user.uid, {
-          name: result.user.displayName || '',
-          email: result.user.email || '',
-          phonenum: '',
-          address: '',
-          pincode: '',
-          dob: '',
-          // Add Google profile picture if available
-          profilePic: result.user.photoURL || ''
-        });
-      }
-      
-      return result.user;
+      // For now, we'll use a mock implementation
+      const mockUser = {
+        uid: 'mock-google-uid-' + Date.now(),
+        email: 'mock@google.com',
+        displayName: 'Google User',
+        photoURL: ''
+      };
+      setCurrentUser(mockUser);
+      return mockUser;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -121,7 +144,9 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setError('');
     try {
-      await signOut(auth);
+      localStorage.removeItem('token');
+      setCurrentUser(null);
+      setIsAdmin(false);
     } catch (err) {
       setError(err.message);
       throw err;
@@ -132,7 +157,21 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (email) => {
     setError('');
     try {
-      await sendPasswordResetEmail(auth, email);
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Password reset failed');
+      }
+
+      return data;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -144,8 +183,8 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     isLoggedIn: !!currentUser,
     isAdmin,
-    userName: currentUser?.displayName || '',
-    userPic: currentUser?.photoURL || '',
+    userName: currentUser?.name || '',
+    userPic: currentUser?.profilePicture || '',
     userEmail: currentUser?.email || '',
     loading,
     error,
@@ -153,7 +192,8 @@ export const AuthProvider = ({ children }) => {
     login,
     googleLogin,
     logout,
-    resetPassword
+    resetPassword,
+    refreshUserData
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

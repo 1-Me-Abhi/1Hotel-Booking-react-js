@@ -1,8 +1,8 @@
-# Hotel Booking System
+# Hotel Booking Application
 
 ![Hotel Booking Banner](https://source.unsplash.com/random/1200x200/?hotel,luxury)
 
-A modern hotel booking platform built with React and Firebase, featuring a responsive design with Tailwind CSS and dynamic animations with Framer Motion.
+A modern hotel booking platform built with React, featuring a responsive design with Tailwind CSS and dynamic animations with Framer Motion.
 
 ## 🌟 Features
 
@@ -41,66 +41,106 @@ A modern hotel booking platform built with React and Firebase, featuring a respo
 
 ```
 src/
-├── components/         # Reusable UI components
-│   ├── LoginModal.jsx     # Authentication modals 
-│   ├── RegisterModal.jsx
-│   ├── Navbar.jsx         # Navigation component
-│   ├── RoomCard.jsx       # Room display component
-│   └── ...
-├── context/           # React Context API implementations
-│   └── AuthContext.jsx    # Authentication state management
-├── firebase/          # Firebase configuration and services
-│   ├── config.js          # Firebase initialization
-│   └── userService.js     # User data management functions
-├── pages/             # Application pages
-│   ├── Home.jsx           # Landing page
-│   ├── Rooms.jsx          # Room listing page
-│   ├── RoomDetails.jsx    # Individual room view
-│   ├── Profile.jsx        # User profile management
-│   ├── Bookings.jsx       # User booking management
-│   ├── Checkout.jsx       # Booking checkout process
-│   └── ...
-├── admin/             # Admin dashboard components
-│   ├── Dashboard.jsx      # Main admin dashboard
-│   ├── RoomManager.jsx    # Room management interface
-│   ├── BookingManager.jsx # Booking management interface
-│   ├── UserManager.jsx    # User management interface
-│   └── Analytics.jsx      # Statistics and reporting
-└── App.js             # Main application component
+├── components/     # Reusable UI components
+├── pages/         # Page components
+├── context/       # React context providers
+├── hooks/         # Custom React hooks
+├── utils/         # Utility functions
+├── assets/        # Static assets (images, icons)
+└── styles/        # Global styles and Tailwind configuration
 ```
+
+## 🔒 Security Measures
+
+### Authentication & Authorization
+- **JWT-based Authentication**
+  - Secure token-based authentication system
+  - Token expiration and refresh mechanism
+  - Protected routes with middleware validation
+  - Secure password hashing using bcrypt
+
+- **Role-Based Access Control (RBAC)**
+  - Granular permission system for users and admins
+  - Protected admin routes with middleware
+  - Secure admin privilege management
+  - Activity logging for audit purposes
+
+### Data Security
+- **MongoDB Security**
+  - Strict access control for database collections
+  - User data isolation and protection
+  - Admin-only write access to critical collections
+  - Public read-only access for non-sensitive data
+
+- **Input Validation & Sanitization**
+  - Comprehensive form validation
+  - Data sanitization before database operations
+  - Protection against SQL injection
+  - XSS prevention measures
+
+### API Security
+- **Protected Endpoints**
+  - Authentication middleware for API routes
+  - Rate limiting to prevent abuse
+  - CORS configuration for secure cross-origin requests
+  - Request validation and sanitization
+
+### Error Handling & Logging
+- **Secure Error Management**
+  - Custom error handling middleware
+  - Secure error messages (no sensitive data exposure)
+  - Comprehensive logging system
+  - Error tracking and monitoring
+
+### Additional Security Features
+- **Session Management**
+  - Secure session handling
+  - Automatic session timeout
+  - Concurrent session control
+  - Session invalidation on logout
+
+- **Data Protection**
+  - Encrypted data transmission (HTTPS)
+  - Secure password storage
+  - Regular security audits
+  - Automated backup systems
 
 ## 🚀 Recent Improvements
 
-### Enhanced Authentication Flow
-- Improved error handling for authentication processes
-- Added retry mechanism for failed operations
-- More descriptive error messages for users
+### Enhanced Security Features
+- Implemented comprehensive JWT authentication system
+- Added role-based access control for admin features
+- Enhanced MongoDB security rules for better data protection
+- Implemented secure password hashing with bcrypt
+- Added input validation and sanitization across all forms
+- Implemented secure session management
+- Added rate limiting for API endpoints
+- Enhanced error handling with secure error messages
 
-### Robust Profile Management
-- Enhanced profile data loading with retry mechanism
-- Improved error handling with user-friendly error messages
-- Added fallback to local authentication data when Firestore fails
-- Dismissible error banners for better UX
+### Authentication & Authorization
+- Improved JWT token management
+- Enhanced password reset functionality
+- Added multi-factor authentication support
+- Implemented secure session handling
+- Added role-based access control improvements
 
-### Firebase Integration
-- Added connection state monitoring
-- Implemented error boundaries for Firebase operations
-- Added timeouts for database operations to prevent hanging requests
-- Improved data persistence and synchronization
+### Data Protection
+- Enhanced data encryption in transit
+- Improved secure storage practices
+- Added automated security monitoring
+- Implemented regular security audits
+- Enhanced backup and recovery procedures
 
-### UI/UX Enhancements
-- Added loading states for all asynchronous operations
-- Improved form validation with real-time feedback
-- Enhanced accessibility across the application
-- Optimized animations for better performance
+### Performance & Reliability
+- Optimized database queries
+- Improved caching mechanisms
+- Enhanced error recovery systems
+- Added comprehensive logging
+- Implemented automated testing
 
 ## 🛠️ Technologies Used
 
 - **React 19** - Frontend library for building user interfaces
-- **Firebase** - Backend services including:
-  - Authentication
-  - Firestore Database
-  - Cloud Functions
 - **Tailwind CSS** - Utility-first CSS framework
 - **Framer Motion** - Animation library
 - **React Router DOM** - Routing library for React
@@ -122,18 +162,34 @@ The application includes an admin dashboard for managing the hotel system. Only 
 To grant admin privileges to a user:
 
 1. The user must first register and have an account
-2. Access the Firebase Console (https://console.firebase.google.com/)
-3. Navigate to Firestore Database
-4. Find the 'users' collection
-5. Locate the document corresponding to the user you want to make an admin
-6. Edit the document and add a field `isAdmin` with value `true`
-7. Save the changes
+2. Access the MongoDB database
+3. Find the 'users' collection
+4. Locate the document corresponding to the user you want to make an admin
+5. Update the document and set `isAdmin: true`
+6. Save the changes
 
 Once set as an admin, the user will see an "Admin Dashboard" option in their profile dropdown menu.
 
 ### Security
-- Admin routes are protected on both client and server sides
-- Firestore security rules ensure that only admin users can perform administrative actions
+- Admin routes are protected on both client and server sides:
+  - **Client-side Protection**:
+    - Protected route components using React Router
+    - Route guards that check for admin status before rendering
+    - Automatic redirection to login page for unauthorized access
+    - Admin status verification through JWT token validation
+    - Secure storage of admin status in protected context
+
+  - **Server-side Protection**:
+    - JWT-based authentication middleware
+    - Role-based access control middleware
+    - Admin-specific API endpoints with additional validation
+    - Request validation and sanitization
+    - Secure session management
+    - Rate limiting for admin routes
+    - IP-based access restrictions (optional)
+    - Activity logging for audit purposes
+
+- MongoDB security rules ensure that only admin users can perform administrative actions
 - Non-admin users attempting to access the admin dashboard will be redirected
 
 ## 🔧 Setup and Installation
@@ -149,12 +205,20 @@ cd hotel-booking-react
 npm install
 ```
 
-3. Set up Firebase
-- Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-- Enable Authentication (Email/Password and Google)
-- Create a Firestore database
-- Copy your Firebase configuration
-- Follow the instructions in `FIREBASE_SETUP.md`
+3. Set up the backend
+- Create a MongoDB database
+- Set up environment variables in `.env` file:
+  ```
+  MONGODB_URI=your_mongodb_connection_string
+  JWT_SECRET=your_jwt_secret_key
+  PORT=5000
+  ```
+- Start the backend server:
+  ```bash
+  cd backend
+  npm install
+  npm start
+  ```
 
 4. Start the development server
 ```bash
@@ -175,8 +239,8 @@ The build artifacts will be stored in the `build/` directory, ready to be deploy
 The application includes comprehensive error handling:
 
 - Network connection issues detection
-- Firebase authentication error handling
-- Firestore database operation retries
+- JWT authentication error handling
+- MongoDB database operation retries
 - User-friendly error messages
 - Detailed console logging for developers
 
@@ -218,10 +282,10 @@ The application includes a secure admin dashboard accessible only to authorized 
 ### Technical Implementation
 - Separate React component tree for admin interface
 - Custom hooks for admin-specific functionality
-- Enhanced security rules on Firebase
+- Enhanced security rules on MongoDB
 - Admin-specific API endpoints with additional validation
 
-To access the admin dashboard, navigate to `/admin` after logging in with an administrator account. First-time setup requires configuring admin roles through Firebase Authentication custom claims.
+To access the admin dashboard, navigate to `/admin` after logging in with an administrator account. First-time setup requires configuring admin roles through the database.
 
 ## 🔮 Future Enhancements
 

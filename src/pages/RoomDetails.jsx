@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import LoginModal from '../components/LoginModal';
 import { motion } from 'framer-motion';
 import PageTransition from '../components/PageTransition';
+import axios from 'axios';
 
 // Animation variants
 const imageVariants = {
@@ -22,73 +23,6 @@ const imageVariants = {
   }
 };
 
-// Sample room data (in a real app, this would come from an API)
-const allRooms = [
-  {
-    id: 1,
-    name: 'Standard Room',
-    price: 2499,
-    features: ['King Bed', 'Balcony', 'Sea View'],
-    facilities: ['AC', 'Room Service', 'TV'],
-    images: [
-      'https://images.unsplash.com/photo-1618773928121-c32242e63f39?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80',
-      'https://images.unsplash.com/photo-1598928636135-d146006ff4be?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80',
-      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
-    ],
-    description: 'Our Standard Room offers a comfortable stay with modern amenities. Enjoy the view from your private balcony overlooking the sea, and relax in the king-sized bed after a day of exploration. Perfect for couples or solo travelers looking for a cozy retreat.',
-    adult: 2,
-    children: 1,
-    rating: 4,
-    reviews: [
-      { id: 1, name: 'John', date: '2023-04-15', rating: 5, comment: 'Amazing room with a great view!' },
-      { id: 2, name: 'Sarah', date: '2023-03-20', rating: 4, comment: 'Very comfortable bed and nice amenities.' },
-      { id: 3, name: 'Mike', date: '2023-02-10', rating: 3, comment: 'Good room but the WiFi was a bit slow.' }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Deluxe Suite',
-    price: 3499,
-    features: ['King Bed', 'Balcony', 'City View'],
-    facilities: ['AC', 'Room Service', 'Mini Bar', 'TV'],
-    images: [
-      'https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1074&q=80',
-      'https://images.unsplash.com/photo-1591088398332-8a7791972843?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1074&q=80',
-      'https://images.unsplash.com/photo-1560185007-5f0bb1866cab?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
-    ],
-    description: 'Experience luxury in our Deluxe Suite, offering a spacious layout with a separate sitting area. Enjoy the panoramic city views from your private balcony, and indulge in the convenience of a fully stocked mini bar. Ideal for those seeking a touch of elegance during their stay.',
-    adult: 2,
-    children: 2,
-    rating: 5,
-    reviews: [
-      { id: 1, name: 'Emily', date: '2023-05-05', rating: 5, comment: 'The suite was absolutely stunning! Loved every minute of our stay.' },
-      { id: 2, name: 'Robert', date: '2023-04-12', rating: 5, comment: 'Exceptional service and beautiful room. Will definitely come back.' },
-      { id: 3, name: 'Lisa', date: '2023-03-28', rating: 4, comment: 'Great suite with lots of space. Only downside was some street noise.' }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Family Suite',
-    price: 4999,
-    features: ['2 Queen Beds', 'Balcony', 'Mountain View'],
-    facilities: ['AC', 'Room Service', 'Mini Bar', 'TV', 'Jacuzzi'],
-    images: [
-      'https://images.unsplash.com/photo-1566665797739-1674de7a421a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1074&q=80',
-      'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80',
-      'https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1174&q=80'
-    ],
-    description: 'Our Family Suite is perfect for families traveling together. With two queen beds and a spacious layout, there\'s room for everyone to relax. Enjoy the mountain view from your balcony, or unwind in the jacuzzi after a day of activities. A home away from home for your family vacation.',
-    adult: 4,
-    children: 2,
-    rating: 5,
-    reviews: [
-      { id: 1, name: 'David', date: '2023-04-30', rating: 5, comment: 'Perfect for our family of 5. Kids loved the space and we enjoyed the jacuzzi!' },
-      { id: 2, name: 'Jennifer', date: '2023-03-15', rating: 5, comment: 'Excellent room for families. Very spacious and well-equipped.' },
-      { id: 3, name: 'Thomas', date: '2023-02-22', rating: 4, comment: 'Great family accommodation, though the mountain view was partially obstructed.' }
-    ]
-  }
-];
-
 const RoomDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -101,25 +35,45 @@ const RoomDetails = () => {
   const [children, setChildren] = useState(0);
   const { isLoggedIn, login } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // In a real app, fetch room data from API
-    const roomData = allRooms.find(r => r.id === parseInt(id));
-    
-    if (roomData) {
-      setRoom(roomData);
-    }
-    
-    setLoading(false);
+    const fetchRoomData = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/rooms/${id}`);
+        if (response.data) {
+          // Transform the room data to match the expected structure
+          const transformedRoom = {
+            ...response.data,
+            features: response.data.amenities || [],
+            facilities: ['AC', 'Room Service', 'TV'], // Add default facilities
+            reviews: response.data.reviews || [],
+            rating: response.data.rating || 4
+          };
+          setRoom(transformedRoom);
+        } else {
+          setError('Room not found');
+        }
+      } catch (error) {
+        console.error('Error fetching room:', error);
+        setError('Failed to load room details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoomData();
   }, [id]);
 
   const handlePrevImage = () => {
+    if (!room?.images?.length) return;
     setCurrentImageIndex(prev => 
       prev === 0 ? room.images.length - 1 : prev - 1
     );
   };
 
   const handleNextImage = () => {
+    if (!room?.images?.length) return;
     setCurrentImageIndex(prev => 
       prev === room.images.length - 1 ? 0 : prev + 1
     );
@@ -136,16 +90,18 @@ const RoomDetails = () => {
       return;
     }
     
+    if (!room) return;
+    
     // Create booking data to send to checkout page
     const bookingData = {
-      roomId: room.id,
-      roomName: room.name,
+      roomId: room._id,
+      roomName: room.type,
       roomPrice: room.price,
       checkInDate: checkInDate,
       checkOutDate: checkOutDate,
       adult: adult,
       children: children,
-      roomImage: room.images[0]
+      roomImage: room.images?.[0] || ''
     };
     
     // Navigate to checkout with booking data
@@ -167,7 +123,7 @@ const RoomDetails = () => {
     );
   }
 
-  if (!room) {
+  if (error || !room) {
     return (
       <motion.div 
         initial={{ opacity: 0 }}
@@ -180,7 +136,7 @@ const RoomDetails = () => {
           animate={{ y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          Room Not Found
+          {error || 'Room Not Found'}
         </motion.h2>
         <motion.p 
           className="mb-6 dark:text-gray-300"
@@ -222,47 +178,57 @@ const RoomDetails = () => {
         >
           {/* Image gallery */}
           <div className="relative h-[60vh]">
-            <motion.img 
-              key={currentImageIndex}
-              variants={imageVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              src={room.images[currentImageIndex]} 
-              alt={`${room.name} view ${currentImageIndex + 1}`}
-              className="w-full h-full object-cover"
-            />
+            {room.images && room.images.length > 0 ? (
+              <motion.img 
+                key={currentImageIndex}
+                variants={imageVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                src={room.images[currentImageIndex]} 
+                alt={`${room.type} view ${currentImageIndex + 1}`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <p className="text-gray-500 dark:text-gray-400">No images available</p>
+              </div>
+            )}
             
-            <motion.button 
-              whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.8)" }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handlePrevImage}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full hover:bg-opacity-75 transition-all dark:bg-gray-800 dark:bg-opacity-50 dark:hover:bg-opacity-75"
-              aria-label="Previous image"
-            >
-              <FaChevronLeft className="text-gray-800 dark:text-white" />
-            </motion.button>
-            
-            <motion.button 
-              whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.8)" }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleNextImage}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full hover:bg-opacity-75 transition-all dark:bg-gray-800 dark:bg-opacity-50 dark:hover:bg-opacity-75"
-              aria-label="Next image"
-            >
-              <FaChevronRight className="text-gray-800 dark:text-white" />
-            </motion.button>
-            
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-              {room.images.map((_, index) => (
-                <button 
-                  key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`w-3 h-3 rounded-full ${index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50 hover:bg-opacity-75'}`}
-                  aria-label={`View image ${index + 1}`}
-                ></button>
-              ))}
-            </div>
+            {room.images && room.images.length > 1 && (
+              <>
+                <motion.button 
+                  whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.8)" }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handlePrevImage}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full hover:bg-opacity-75 transition-all dark:bg-gray-800 dark:bg-opacity-50 dark:hover:bg-opacity-75"
+                  aria-label="Previous image"
+                >
+                  <FaChevronLeft className="text-gray-800 dark:text-white" />
+                </motion.button>
+                
+                <motion.button 
+                  whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.8)" }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 p-2 rounded-full hover:bg-opacity-75 transition-all dark:bg-gray-800 dark:bg-opacity-50 dark:hover:bg-opacity-75"
+                  aria-label="Next image"
+                >
+                  <FaChevronRight className="text-gray-800 dark:text-white" />
+                </motion.button>
+                
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                  {room.images.map((_, index) => (
+                    <button 
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`w-3 h-3 rounded-full ${index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50 hover:bg-opacity-75'}`}
+                      aria-label={`View image ${index + 1}`}
+                    ></button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
           
           <div className="p-6">
@@ -272,7 +238,7 @@ const RoomDetails = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">{room.name}</h1>
+                <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">{room.type}</h1>
                 
                 <div className="flex items-center mb-2">
                   {[...Array(5)].map((_, index) => (
@@ -283,7 +249,7 @@ const RoomDetails = () => {
                       transition={{ delay: 0.4 + index * 0.1 }}
                     >
                       <FaStar 
-                        className={index < room.rating ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'} 
+                        className={index < (room.rating || 4) ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'} 
                       />
                     </motion.span>
                   ))}
@@ -293,7 +259,7 @@ const RoomDetails = () => {
                     transition={{ delay: 0.9 }}
                     className="ml-2 text-gray-600 dark:text-gray-400"
                   >
-                    ({room.reviews.length} reviews)
+                    ({room.reviews?.length || 0} reviews)
                   </motion.span>
                 </div>
                 
@@ -315,10 +281,10 @@ const RoomDetails = () => {
               >
                 <div className="flex space-x-2">
                   <span className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm px-3 py-1 rounded-full">
-                    {room.adult} Adults
+                    {room.capacity} Adults
                   </span>
                   <span className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm px-3 py-1 rounded-full">
-                    {room.children} Children
+                    {Math.floor(room.capacity / 2)} Children
                   </span>
                 </div>
               </motion.div>
@@ -341,7 +307,7 @@ const RoomDetails = () => {
               >
                 <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Features</h3>
                 <ul className="space-y-2">
-                  {room.features.map((feature, index) => (
+                  {room.features?.map((feature, index) => (
                     <motion.li 
                       key={index} 
                       className="flex items-center text-gray-700 dark:text-gray-300"
@@ -363,7 +329,7 @@ const RoomDetails = () => {
               >
                 <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Facilities</h3>
                 <ul className="space-y-2">
-                  {room.facilities.map((facility, index) => (
+                  {room.facilities?.map((facility, index) => (
                     <motion.li 
                       key={index} 
                       className="flex items-center text-gray-700 dark:text-gray-300"
@@ -492,11 +458,11 @@ const RoomDetails = () => {
         >
           <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Guest Reviews</h2>
           
-          {room.reviews.length > 0 ? (
+          {room.reviews && room.reviews.length > 0 ? (
             <div className="space-y-6">
               {room.reviews.map((review, idx) => (
                 <motion.div 
-                  key={review.id} 
+                  key={review.id || idx} 
                   className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0 last:pb-0"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -511,7 +477,7 @@ const RoomDetails = () => {
                       {[...Array(5)].map((_, index) => (
                         <FaStar 
                           key={index} 
-                          className={index < review.rating ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'} 
+                          className={index < (review.rating || 4) ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'} 
                         />
                       ))}
                     </div>
