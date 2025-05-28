@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { FaUser, FaEnvelope, FaPhone, FaAddressCard, FaBirthdayCake, FaMapMarkerAlt, FaKey, FaLock, FaEdit, FaSignOutAlt, FaCalendarCheck } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { getUserData, updateUserData } from '../firebase/userService';
-import { updatePassword, updateProfile, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 // Create a new ErrorBanner component to properly handle error display
 const ErrorBanner = ({ message, onDismiss }) => {
@@ -34,9 +33,11 @@ const ErrorBanner = ({ message, onDismiss }) => {
   );
 };
 
+const API_URL = 'http://localhost:5000/api';
+
 const Profile = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, currentUser, logout } = useAuth();
+  const { isLoggedIn, currentUser, logout, refreshUserData } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [profileData, setProfileData] = useState({
     name: '',
@@ -44,7 +45,7 @@ const Profile = () => {
     phonenum: '',
     address: '',
     pincode: '',
-    dob: '',
+    dob: null,
     profilePic: 'https://randomuser.me/api/portraits/men/73.jpg' // Default picture
   });
   
@@ -54,7 +55,7 @@ const Profile = () => {
     phonenum: '',
     address: '',
     pincode: '',
-    dob: ''
+    dob: null
   });
   
   const [passwordData, setPasswordData] = useState({
@@ -73,10 +74,10 @@ const Profile = () => {
     setErrorMessage('');
   };
 
-  // Fetch user data from Firestore when component mounts
+  // Load user data when component mounts
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!currentUser || !currentUser.uid) {
+    const loadUserData = async () => {
+      if (!currentUser) {
         setFetchingData(false);
         return;
       }
@@ -85,128 +86,52 @@ const Profile = () => {
         setFetchingData(true);
         setErrorMessage('');
         
-        console.log("Attempting to fetch user data for:", currentUser.uid);
-        
-        // Get user data from Firestore with retry logic
-        let userData = null;
-        let retryCount = 0;
-        const maxRetries = 3;
-        
-        while (!userData && retryCount < maxRetries) {
-          try {
-            userData = await getUserData(currentUser.uid);
-            console.log("Fetch attempt result:", userData ? "Data found" : "No data found");
-            
-            if (!userData && retryCount < maxRetries - 1) {
-              // Wait before retrying (exponential backoff)
-              console.log(`Retry attempt ${retryCount + 1} of ${maxRetries}`);
-              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
-              retryCount++;
-            }
-          } catch (fetchError) {
-            console.error(`Attempt ${retryCount + 1} failed:`, fetchError);
-            if (retryCount < maxRetries - 1) {
-              retryCount++;
-              // Wait before retrying
-              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
-            } else {
-              throw fetchError; // Re-throw if all retries failed
-            }
-          }
-        }
-        
-        // If we still don't have user data after all retries, create it
-        if (!userData) {
-          console.log("No user data found after retries, creating new profile");
-          // If no Firestore data exists yet, use Firebase Auth data and create a record
-          const newUserData = {
-            name: currentUser.displayName || '',
-            email: currentUser.email || '',
-            phonenum: '',
-            address: '',
-            pincode: '',
-            dob: '',
-          };
-          
-          try {
-            // Update Firestore with basic user data from Auth
-            await updateUserData(currentUser.uid, newUserData);
-            
-            userData = newUserData; // Use the newly created data
-            console.log("New user profile created successfully");
-          } catch (createError) {
-            console.error("Failed to create new user profile:", createError);
-            // Even if creation fails, still show the profile with Auth data
-          }
-        }
-        
-        // Always set profile data with at least the auth data, even if Firestore fails
+        // Set profile data from current user
         setProfileData({
-          name: (userData?.name || currentUser.displayName) || '',
-          email: (userData?.email || currentUser.email) || '',
-          phonenum: userData?.phonenum || '',
-          address: userData?.address || '',
-          pincode: userData?.pincode || '',
-          dob: userData?.dob || '',
-          createdAt: userData?.createdAt,
-          profilePic: currentUser.photoURL || 'https://randomuser.me/api/portraits/men/73.jpg'
+          name: currentUser.name || '',
+          email: currentUser.email || '',
+          phonenum: currentUser.phoneNumber || '',
+          address: currentUser.address || '',
+          pincode: currentUser.pincode || '',
+          dob: currentUser.dateOfBirth ? new Date(currentUser.dateOfBirth) : null,
+          profilePic: currentUser.profilePicture || 'https://randomuser.me/api/portraits/men/73.jpg'
         });
         
-        // Clear any error message since we successfully set the profile data
+        // Set initial form data
+        setFormData({
+          name: currentUser.name || '',
+          email: currentUser.email || '',
+          phonenum: currentUser.phoneNumber || '',
+          address: currentUser.address || '',
+          pincode: currentUser.pincode || '',
+          dob: currentUser.dateOfBirth ? new Date(currentUser.dateOfBirth) : null
+        });
+        
         setErrorMessage('');
-        console.log("Profile data set successfully");
         
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error loading user data:", error);
         setErrorMessage("Failed to load your profile data. Please refresh and try again.");
-        
-        // Still set basic profile data from Auth even if Firestore fails
-        if (currentUser) {
-          setProfileData({
-            name: currentUser.displayName || '',
-            email: currentUser.email || '',
-            phonenum: '',
-            address: '',
-            pincode: '',
-            dob: '',
-            profilePic: currentUser.photoURL || 'https://randomuser.me/api/portraits/men/73.jpg'
-          });
-        }
       } finally {
         setFetchingData(false);
       }
     };
 
     if (isLoggedIn) {
-      fetchUserData();
+      loadUserData();
     } else {
       navigate('/');
     }
   }, [isLoggedIn, currentUser, navigate]);
 
-  // Update form data when profile data changes
-  useEffect(() => {
-    setFormData({
-      name: profileData.name,
-      email: profileData.email,
-      phonenum: profileData.phonenum,
-      address: profileData.address,
-      pincode: profileData.pincode,
-      dob: profileData.dob
-    });
-  }, [profileData]);
-  
-  // Add this useEffect right after the profile data changes useEffect
-  // Clear error message when there's valid profile data
-  useEffect(() => {
-    if (profileData && profileData.email) {
-      setErrorMessage('');
-    }
-  }, [profileData]);
-  
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (errorMessage) setErrorMessage('');
+  };
+  
+  const handleDateChange = (date) => {
+    setFormData(prev => ({ ...prev, dob: date }));
     if (errorMessage) setErrorMessage('');
   };
   
@@ -223,45 +148,36 @@ const Profile = () => {
     setErrorMessage('');
     
     try {
-      if (!currentUser || !currentUser.uid) {
-        throw new Error("You must be logged in to update your profile");
-      }
-      
-      // Update display name in Firebase Auth if it has changed
-      if (formData.name !== currentUser.displayName) {
-        await updateProfile(currentUser, {
-          displayName: formData.name
-        });
-      }
-      
-      // Update user data in Firestore
-      await updateUserData(currentUser.uid, {
-        name: formData.name,
-        phonenum: formData.phonenum,
-        address: formData.address,
-        pincode: formData.pincode,
-        dob: formData.dob
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/users/profile`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          phoneNumber: formData.phonenum,
+          address: formData.address,
+          pincode: formData.pincode,
+          dateOfBirth: formData.dob ? formData.dob.toISOString().split('T')[0] : null
+        })
       });
+
+      const data = await response.json();
       
-      // Update local state
-      setProfileData(prev => ({
-        ...prev,
-        ...formData
-      }));
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update profile');
+      }
+
+      // Refresh user data from the server
+      await refreshUserData();
       
-      setSuccessMessage('Profile updated successfully');
+      setSuccessMessage('Profile updated successfully!');
     } catch (error) {
-      console.error("Error updating profile:", error);
-      setErrorMessage(error.message || "Failed to update profile");
+      setErrorMessage(error.message);
     } finally {
       setLoading(false);
-      
-      // Clear success message after 3 seconds
-      if (!errorMessage) {
-        setTimeout(() => {
-          setSuccessMessage('');
-        }, 3000);
-      }
     }
   };
   
@@ -271,70 +187,45 @@ const Profile = () => {
     setSuccessMessage('');
     setErrorMessage('');
     
-    // Simple validation
-    if (passwordData.new !== passwordData.confirm) {
-      setErrorMessage('New password and confirm password do not match');
-      setLoading(false);
-      return;
-    }
-    
-    if (passwordData.new.length < 6) {
-      setErrorMessage('Password must be at least 6 characters');
-      setLoading(false);
-      return;
-    }
-
     try {
-      if (!currentUser) {
-        throw new Error("You must be logged in to update password");
+      if (passwordData.new !== passwordData.confirm) {
+        throw new Error('New passwords do not match');
       }
-      
-      // Re-authenticate user first
-      const credential = EmailAuthProvider.credential(
-        currentUser.email,
-        passwordData.current
-      );
-      
-      await reauthenticateWithCredential(currentUser, credential);
-      
-      // Update password in Firebase Auth
-      await updatePassword(currentUser, passwordData.new);
-      
-      setSuccessMessage('Password updated successfully');
-      setPasswordData({
-        current: '',
-        new: '',
-        confirm: ''
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.current,
+          newPassword: passwordData.new
+        })
       });
-    } catch (error) {
-      console.error("Error updating password:", error);
+
+      const data = await response.json();
       
-      if (error.code === 'auth/requires-recent-login') {
-        setErrorMessage('For security reasons, please log in again before changing your password');
-      } else if (error.code === 'auth/wrong-password') {
-        setErrorMessage('Current password is incorrect');
-      } else {
-        setErrorMessage(error.message || "Failed to update password");
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update password');
       }
+      
+      setSuccessMessage('Password updated successfully!');
+      setPasswordData({ current: '', new: '', confirm: '' });
+    } catch (error) {
+      setErrorMessage(error.message);
     } finally {
       setLoading(false);
-      
-      // Clear messages after 3 seconds
-      if (!errorMessage) {
-        setTimeout(() => {
-          setSuccessMessage('');
-        }, 3000);
-      }
     }
   };
-
+  
   const handleLogout = async () => {
     try {
       await logout();
       navigate('/');
     } catch (error) {
-      console.error("Error logging out:", error);
-      setErrorMessage("Failed to log out. Please try again.");
+      setErrorMessage(error.message);
     }
   };
 
@@ -357,16 +248,6 @@ const Profile = () => {
       transition: { duration: 0.3 }
     }
   };
-  
-  // Check if we have a profile to display, but there's still an error for some reason
-  // This handles the case where the Firebase connection had issues but we were still able to get profile data
-  useEffect(() => {
-    // If we have profile data from Auth but still have an error message about failing to load,
-    // clear the error since we can still display a profile
-    if (profileData && profileData.email && errorMessage === "Failed to load your profile data. Please refresh and try again.") {
-      setErrorMessage('');
-    }
-  }, [profileData, errorMessage]);
   
   // Create a ProfilePage component to handle the UI rendering
   const ProfilePage = () => (
@@ -564,11 +445,16 @@ const Profile = () => {
                     <label className="block text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                       <FaBirthdayCake className="mr-2 text-custom-bg" /> Date of Birth
                     </label>
-                    <input
-                      type="date"
-                      name="dob"
-                      value={formData.dob}
-                      onChange={handleProfileChange}
+                    <DatePicker
+                      selected={formData.dob}
+                      onChange={handleDateChange}
+                      dateFormat="dd/MM/yyyy"
+                      showYearDropdown
+                      showMonthDropdown
+                      dropdownMode="select"
+                      maxDate={new Date()}
+                      minDate={new Date(1900, 0, 1)}
+                      placeholderText="Select your date of birth"
                       className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-custom-bg dark:text-white"
                       required
                     />
@@ -602,91 +488,71 @@ const Profile = () => {
                 variants={containerVariants}
               >
                 <h3 className="text-xl font-bold mb-6 dark:text-white">Change Password</h3>
-                {currentUser?.providerData?.[0]?.providerId === 'google.com' ? (
-                  <div className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 p-5 rounded-xl">
-                    <h4 className="font-bold flex items-center mb-2">
-                      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                      </svg>
-                      Google Account
-                    </h4>
-                    <p>You signed in with Google. To change your password, please visit your Google account settings.</p>
-                    <a 
-                      href="https://myaccount.google.com/security" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-block mt-3 text-blue-700 dark:text-blue-300 font-medium hover:underline"
+                <form onSubmit={handlePasswordUpdate} className="space-y-5">
+                  <motion.div variants={itemVariants}>
+                    <label className="block text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                      <FaKey className="mr-2 text-custom-bg" /> Current Password
+                    </label>
+                    <input
+                      type="password"
+                      name="current"
+                      value={passwordData.current}
+                      onChange={handlePasswordChange}
+                      className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-custom-bg dark:text-white"
+                      required
+                    />
+                  </motion.div>
+                  
+                  <motion.div variants={itemVariants}>
+                    <label className="block text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                      <FaKey className="mr-2 text-custom-bg" /> New Password
+                    </label>
+                    <input
+                      type="password"
+                      name="new"
+                      value={passwordData.new}
+                      onChange={handlePasswordChange}
+                      className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-custom-bg dark:text-white"
+                      required
+                      minLength="6"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Password must be at least 6 characters</p>
+                  </motion.div>
+                  
+                  <motion.div variants={itemVariants}>
+                    <label className="block text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                      <FaKey className="mr-2 text-custom-bg" /> Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      name="confirm"
+                      value={passwordData.confirm}
+                      onChange={handlePasswordChange}
+                      className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-custom-bg dark:text-white"
+                      required
+                    />
+                  </motion.div>
+                  
+                  <motion.div variants={itemVariants} className="pt-4">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="submit"
+                      disabled={loading}
+                      className={`w-full sm:w-auto bg-custom-bg hover:bg-custom-bg-dark text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
-                      Go to Google Account Security
-                    </a>
-                  </div>
-                ) : (
-                  <form onSubmit={handlePasswordUpdate} className="space-y-5">
-                    <motion.div variants={itemVariants}>
-                      <label className="block text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                        <FaKey className="mr-2 text-custom-bg" /> Current Password
-                      </label>
-                      <input
-                        type="password"
-                        name="current"
-                        value={passwordData.current}
-                        onChange={handlePasswordChange}
-                        className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-custom-bg dark:text-white"
-                        required
-                      />
-                    </motion.div>
-                    
-                    <motion.div variants={itemVariants}>
-                      <label className="block text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                        <FaKey className="mr-2 text-custom-bg" /> New Password
-                      </label>
-                      <input
-                        type="password"
-                        name="new"
-                        value={passwordData.new}
-                        onChange={handlePasswordChange}
-                        className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-custom-bg dark:text-white"
-                        required
-                        minLength="6"
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Password must be at least 6 characters</p>
-                    </motion.div>
-                    
-                    <motion.div variants={itemVariants}>
-                      <label className="block text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                        <FaKey className="mr-2 text-custom-bg" /> Confirm New Password
-                      </label>
-                      <input
-                        type="password"
-                        name="confirm"
-                        value={passwordData.confirm}
-                        onChange={handlePasswordChange}
-                        className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-custom-bg dark:text-white"
-                        required
-                      />
-                    </motion.div>
-                    
-                    <motion.div variants={itemVariants} className="pt-4">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        type="submit"
-                        disabled={loading}
-                        className={`w-full sm:w-auto bg-custom-bg hover:bg-custom-bg-dark text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                      >
-                        {loading ? (
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        ) : (
-                          <FaLock className="mr-2" />
-                        )}
-                        <span>{loading ? 'Updating...' : 'Update Password'}</span>
-                      </motion.button>
-                    </motion.div>
-                  </form>
-                )}
+                      {loading ? (
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      ) : (
+                        <FaLock className="mr-2" />
+                      )}
+                      <span>{loading ? 'Updating...' : 'Update Password'}</span>
+                    </motion.button>
+                  </motion.div>
+                </form>
               </motion.div>
             )}
           </div>

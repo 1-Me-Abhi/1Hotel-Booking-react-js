@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { FaUserPlus, FaTimes, FaEnvelope, FaPhone, FaLock, FaUser, FaMapMarkerAlt, FaCalendarAlt, FaGoogle } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
-import { saveUserData } from '../firebase/userService';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const RegisterModal = ({ onClose }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phonenum: '',
+    phoneNumber: '',
     address: '',
     pincode: '',
-    dob: '',
+    dateOfBirth: null,
     password: '',
     cpassword: ''
   });
@@ -24,6 +25,10 @@ const RegisterModal = ({ onClose }) => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleDateChange = (date) => {
+    setFormData({ ...formData, dateOfBirth: date });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -35,7 +40,7 @@ const RegisterModal = ({ onClose }) => {
     
     // Check if all fields are filled
     for (const key in formData) {
-      if (!formData[key]) {
+      if (key !== 'cpassword' && !formData[key]) {
         setError('Please fill all required fields');
         return;
       }
@@ -45,26 +50,20 @@ const RegisterModal = ({ onClose }) => {
       setError('');
       setLoading(true);
       
-      // Register user with Firebase
-      const userCredential = await register(formData.email, formData.password, formData.name);
-      
-      // Save additional user data to Firestore
-      await saveUserData(userCredential.uid, {
-        name: formData.name,
-        email: formData.email,
-        phonenum: formData.phonenum,
-        address: formData.address,
-        pincode: formData.pincode,
-        dob: formData.dob
-      });
+      // Register user with backend API
+      await register(
+        formData.email,
+        formData.password,
+        formData.name,
+        formData.phoneNumber,
+        formData.address,
+        formData.pincode,
+        formData.dateOfBirth
+      );
       
       onClose();
     } catch (err) {
-      if (err.message.includes('email-already-in-use')) {
-        setError('This email is already registered');
-      } else {
-        setError(err.message);
-      }
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -160,8 +159,8 @@ const RegisterModal = ({ onClose }) => {
               </label>
               <input
                 type="tel"
-                name="phonenum"
-                value={formData.phonenum}
+                name="phoneNumber"
+                value={formData.phoneNumber}
                 onChange={handleChange}
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-custom-bg dark:bg-gray-700 dark:text-white transition-all"
                 placeholder="1234567890"
@@ -203,11 +202,16 @@ const RegisterModal = ({ onClose }) => {
               <label className="block text-gray-700 dark:text-gray-300 mb-2 font-medium">
                 <FaCalendarAlt className="inline mr-2 text-custom-bg" /> Date of Birth
               </label>
-              <input
-                type="date"
-                name="dob"
-                value={formData.dob}
-                onChange={handleChange}
+              <DatePicker
+                selected={formData.dateOfBirth}
+                onChange={handleDateChange}
+                dateFormat="dd/MM/yyyy"
+                showYearDropdown
+                showMonthDropdown
+                dropdownMode="select"
+                maxDate={new Date()}
+                minDate={new Date(1900, 0, 1)}
+                placeholderText="Select your date of birth"
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-custom-bg dark:bg-gray-700 dark:text-white transition-all"
                 required
               />

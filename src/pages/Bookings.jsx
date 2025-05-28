@@ -2,62 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaBed, FaCalendarAlt, FaUsers, FaMoneyBillWave, FaDownload, FaTimesCircle, FaFilter } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
-
-// Sample bookings data (in a real app, this would come from an API)
-const sampleBookings = [
-  {
-    id: 1,
-    roomName: 'Deluxe Suite',
-    checkIn: '2023-08-15',
-    checkOut: '2023-08-18',
-    adult: 2,
-    children: 1,
-    amount: 10497,
-    bookingDate: '2023-07-28',
-    status: 'Confirmed', // Confirmed, Cancelled, Completed
-    paymentStatus: 'Paid', // Paid, Pending
-    roomId: 2
-  },
-  {
-    id: 2,
-    roomName: 'Standard Room',
-    checkIn: '2023-09-05',
-    checkOut: '2023-09-07',
-    adult: 1,
-    children: 0,
-    amount: 4998,
-    bookingDate: '2023-08-10',
-    status: 'Cancelled',
-    paymentStatus: 'Refunded',
-    roomId: 1
-  },
-  {
-    id: 3,
-    roomName: 'Family Suite',
-    checkIn: '2023-11-20',
-    checkOut: '2023-11-25',
-    adult: 4,
-    children: 2,
-    amount: 24995,
-    bookingDate: '2023-08-15',
-    status: 'Confirmed',
-    paymentStatus: 'Paid',
-    roomId: 3
-  },
-  {
-    id: 4,
-    roomName: 'Standard Room',
-    checkIn: new Date().toISOString().split('T')[0], // Today's date
-    checkOut: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Today + 2 days
-    adult: 2,
-    children: 0,
-    amount: 4998,
-    bookingDate: new Date().toISOString().split('T')[0], // Today's date
-    status: 'Confirmed',
-    paymentStatus: 'Paid',
-    roomId: 1
-  }
-];
+import bookingService from '../services/bookingService';
 
 const Bookings = () => {
   const navigate = useNavigate();
@@ -65,6 +10,7 @@ const Bookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [error, setError] = useState(null);
   
   useEffect(() => {
     // Check if user is logged in
@@ -73,23 +19,73 @@ const Bookings = () => {
       return;
     }
     
-    // Simulate API call to fetch bookings
-    setTimeout(() => {
-      setBookings(sampleBookings);
-      setLoading(false);
-    }, 1000);
+    const fetchBookings = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/bookings/my-bookings`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch bookings');
+        }
+
+        const data = await response.json();
+        // Sort bookings by creation date (newest first)
+        const sortedBookings = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setBookings(sortedBookings);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching bookings:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
   }, [isLoggedIn, navigate]);
   
-  const handleCancelBooking = (bookingId) => {
+  const handleCancelBooking = async (bookingId) => {
     if (window.confirm('Are you sure you want to cancel this booking?')) {
-      // In a real app, this would send a cancel request to the API
-      setBookings(prevBookings => 
-        prevBookings.map(booking => 
-          booking.id === bookingId 
-            ? { ...booking, status: 'Cancelled', paymentStatus: 'Refunded' } 
-            : booking
-        )
-      );
+      try {
+        // Check if user is logged in
+        if (!isLoggedIn) {
+          setError('Please log in to cancel your booking');
+          return;
+        }
+
+        // Check if token exists
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('Authentication token missing. Please log in again.');
+          return;
+        }
+
+        const response = await bookingService.cancelBooking(bookingId);
+        
+        if (response.message === 'Booking cancelled successfully') {
+          setBookings(prevBookings => 
+            prevBookings.map(booking => 
+              booking._id === bookingId 
+                ? { ...booking, status: 'cancelled', paymentStatus: 'refunded' } 
+                : booking
+            )
+          );
+          // Clear any existing errors
+          setError(null);
+        } else {
+          setError('Failed to cancel booking. Please try again later.');
+        }
+      } catch (err) {
+        console.error('Cancellation error:', err);
+        setError(err.response?.data?.message || 'Failed to cancel booking. Please try again later.');
+      }
     }
   };
   
@@ -142,6 +138,14 @@ const Bookings = () => {
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -153,78 +157,91 @@ const Bookings = () => {
             <h2 className="text-xl font-semibold mb-2 md:mb-0">Booking History</h2>
             
             <div className="flex space-x-2">
-              <button 
-                className={`px-3 py-1 rounded-md ${filter === 'all' ? 'bg-custom-bg text-white' : 'bg-gray-100 text-gray-800'}`}
+              <button
                 onClick={() => handleFilterChange('all')}
+                className={`px-4 py-2 rounded-md ${
+                  filter === 'all' ? 'bg-custom-bg text-white' : 'bg-gray-200'
+                }`}
               >
                 All
               </button>
-              <button 
-                className={`px-3 py-1 rounded-md ${filter === 'confirmed' ? 'bg-custom-bg text-white' : 'bg-gray-100 text-gray-800'}`}
+              <button
                 onClick={() => handleFilterChange('confirmed')}
+                className={`px-4 py-2 rounded-md ${
+                  filter === 'confirmed' ? 'bg-custom-bg text-white' : 'bg-gray-200'
+                }`}
               >
                 Confirmed
               </button>
-              <button 
-                className={`px-3 py-1 rounded-md ${filter === 'cancelled' ? 'bg-custom-bg text-white' : 'bg-gray-100 text-gray-800'}`}
+              <button
                 onClick={() => handleFilterChange('cancelled')}
+                className={`px-4 py-2 rounded-md ${
+                  filter === 'cancelled' ? 'bg-custom-bg text-white' : 'bg-gray-200'
+                }`}
               >
                 Cancelled
               </button>
-              <button 
-                className={`px-3 py-1 rounded-md ${filter === 'completed' ? 'bg-custom-bg text-white' : 'bg-gray-100 text-gray-800'}`}
+              <button
                 onClick={() => handleFilterChange('completed')}
+                className={`px-4 py-2 rounded-md ${
+                  filter === 'completed' ? 'bg-custom-bg text-white' : 'bg-gray-200'
+                }`}
               >
                 Completed
               </button>
             </div>
           </div>
-          
+
           <div className="space-y-6">
-            {filteredBookings().map(booking => (
-              <div key={booking.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            {filteredBookings().map((booking) => (
+              <div key={booking._id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="p-6">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                  <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="text-xl font-semibold">{booking.roomName}</h3>
-                      <p className="text-gray-600 text-sm">Booking ID: {booking.id}</p>
+                      <h3 className="text-xl font-semibold mb-2">{booking.room?.type || 'Room Type Not Available'}</h3>
+                      <div className="flex items-center text-gray-600 mb-2">
+                        <FaBed className="mr-2" />
+                        Room {booking.room?.roomNumber || 'N/A'}
+                      </div>
                     </div>
-                    
-                    <div className="flex space-x-2 mt-2 md:mt-0">
+                    <div className="text-right">
                       <span className={`px-3 py-1 rounded-full text-sm ${getStatusBadgeClass(booking.status)}`}>
-                        Status: {booking.status}
+                        {booking.status}
                       </span>
-                      <span className={`px-3 py-1 rounded-full text-sm ${getPaymentBadgeClass(booking.paymentStatus)}`}>
-                        Payment: {booking.paymentStatus}
-                      </span>
+                      <div className="mt-2">
+                        <span className={`px-3 py-1 rounded-full text-sm ${getPaymentBadgeClass(booking.paymentStatus)}`}>
+                          {booking.paymentStatus}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Check-in</p>
-                      <p className="font-medium">{formatDate(booking.checkIn)}</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="flex items-center text-gray-600">
+                      <FaCalendarAlt className="mr-2" />
+                      <div>
+                        <p className="text-sm">Check-in: {formatDate(booking.checkIn)}</p>
+                        <p className="text-sm">Check-out: {formatDate(booking.checkOut)}</p>
+                      </div>
                     </div>
-                    
-                    <div>
-                      <p className="text-sm text-gray-600">Check-out</p>
-                      <p className="font-medium">{formatDate(booking.checkOut)}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-gray-600">Guests</p>
-                      <p className="font-medium">{booking.adult} Adult{booking.adult !== 1 ? 's' : ''}, {booking.children} Child{booking.children !== 1 ? 'ren' : ''}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-gray-600">Amount</p>
-                      <p className="font-semibold">₹{booking.amount}</p>
+                    <div className="flex items-center text-gray-600">
+                      <FaMoneyBillWave className="mr-2" />
+                      <div>
+                        <p className="text-sm">Total Price: ${booking.totalPrice || 'N/A'}</p>
+                      </div>
                     </div>
                   </div>
-                  
+
+                  {booking.specialRequests && (
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600">Special Requests:</p>
+                      <p className="text-gray-800">{booking.specialRequests}</p>
+                    </div>
+                  )}
+
                   <div className="flex justify-between items-center border-t border-gray-200 pt-4">
                     <div className="text-sm text-gray-600">
-                      Booked on: {formatDate(booking.bookingDate)}
+                      Booked on: {formatDate(booking.createdAt)}
                     </div>
                     
                     <div className="flex space-x-3">
@@ -232,17 +249,19 @@ const Bookings = () => {
                         <FaDownload className="mr-1" /> Invoice
                       </button>
                       
+                      {booking.room?._id && (
                       <Link 
-                        to={`/room/${booking.roomId}`}
+                        to={`/room/${booking.room._id}`}
                         className="flex items-center text-custom-bg hover:text-opacity-80"
                       >
                         View Room
                       </Link>
+                      )}
                       
                       {booking.status.toLowerCase() === 'confirmed' && (
                         <button 
                           className="flex items-center text-red-600 hover:text-red-800"
-                          onClick={() => handleCancelBooking(booking.id)}
+                          onClick={() => handleCancelBooking(booking._id)}
                         >
                           <FaTimesCircle className="mr-1" /> Cancel
                         </button>
