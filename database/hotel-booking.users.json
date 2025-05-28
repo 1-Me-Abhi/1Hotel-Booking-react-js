@@ -1,0 +1,132 @@
+[{
+  "_id": {
+    "$oid": "68320a51e90d180e8d2cf94c"
+  },
+  "name": "Abhishek",
+  "email": "kumarabhi45380@gmail.com",
+  "password": "$2a$08$Z1OcxzpguvfaPapIbEfCaOIBt.IpteYJdNi2Z21PIvuA3JKScB4HW",
+  "isAdmin": true,
+  "profilePicture": "https://randomuser.me/api/portraits/men/73.jpg",
+  "createdAt": {
+    "$date": "2025-05-24T18:05:05.292Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-24T18:05:05.292Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6832adf2a9cbb2b47518a605"
+  },
+  "name": "Ayu",
+  "email": "test@gmail.com",
+  "password": "$2a$08$dkrQlT8hg6MxH2vpPgExqONS8hyvx3pCMKmYy1aIwypOlONuTF.6u",
+  "phoneNumber": "58745757",
+  "address": "supertedfw dx",
+  "pincode": "674688",
+  "dateOfBirth": {
+    "$date": "2025-05-20T18:30:00.000Z"
+  },
+  "isAdmin": false,
+  "profilePicture": "https://randomuser.me/api/portraits/men/73.jpg",
+  "createdAt": {
+    "$date": "2025-05-25T05:43:14.498Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-25T11:28:48.151Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6832f1bca8ec143c2661be5d"
+  },
+  "name": "Noddy",
+  "email": "lol.nobodycares@ghk",
+  "password": "$2a$08$tzXEuJiE5.glbr2Rr85scOp4zLon7JZ.fuNzAMEHVijEnm7DgQgIG",
+  "phoneNumber": "6996699669",
+  "address": "alpha 2",
+  "pincode": "201308",
+  "dateOfBirth": {
+    "$date": "2000-05-07T18:30:00.000Z"
+  },
+  "isAdmin": false,
+  "profilePicture": "https://randomuser.me/api/portraits/men/73.jpg",
+  "createdAt": {
+    "$date": "2025-05-25T10:32:28.684Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-25T10:32:28.684Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68330aa96751d1dccbd9c501"
+  },
+  "name": "roshan",
+  "email": "roshan654@gmail.com",
+  "password": "$2a$08$ILXxdqpZgjX.HHrdjwt64eHUjG/nWgqigyrBSJ0zIcjusLU4W7jWK",
+  "phoneNumber": "9981704939",
+  "address": "beta 1",
+  "pincode": "65432",
+  "dateOfBirth": {
+    "$date": "2001-09-18T00:00:00.000Z"
+  },
+  "isAdmin": false,
+  "profilePicture": "https://randomuser.me/api/portraits/men/73.jpg",
+  "createdAt": {
+    "$date": "2025-05-25T12:18:49.438Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-25T12:21:51.209Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68330de56751d1dccbd9c5ce"
+  },
+  "name": "Abhi",
+  "email": "noabhi30@gmail.com",
+  "password": "$2a$08$2XJqO6GjC6SOyFMP8aSoYupG4o6HkpRalBwgPmL.5Xv8fEa2PKS3m",
+  "phoneNumber": "123456789",
+  "address": "zxcfghui90",
+  "pincode": "123445",
+  "dateOfBirth": {
+    "$date": "2002-05-13T18:30:00.000Z"
+  },
+  "isAdmin": false,
+  "profilePicture": "https://randomuser.me/api/portraits/men/73.jpg",
+  "createdAt": {
+    "$date": "2025-05-25T12:32:37.414Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-25T12:32:37.414Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6833322db8d4e6171d242a77"
+  },
+  "name": "Manjitesh",
+  "email": "manjiteshkumar12@gmail.com",
+  "password": "$2a$08$n0xEYVv0oAB8z5H8NA2H9er2YZPpR8TofBo4s5DrlkvAcZ3Fad7/G",
+  "phoneNumber": "9934414103",
+  "address": "Beta 1, Greater Noida,UP",
+  "pincode": "201308",
+  "dateOfBirth": {
+    "$date": "2003-09-11T00:00:00.000Z"
+  },
+  "isAdmin": true,
+  "profilePicture": "https://randomuser.me/api/portraits/men/73.jpg",
+  "createdAt": {
+    "$date": "2025-05-25T15:07:25.232Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-25T15:26:33.463Z"
+  },
+  "__v": 0
+}]

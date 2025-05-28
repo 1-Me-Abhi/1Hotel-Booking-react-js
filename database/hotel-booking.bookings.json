@@ -1,0 +1,308 @@
+[{
+  "_id": {
+    "$oid": "68328e621a0ee5eb0f98de46"
+  },
+  "user": {
+    "$oid": "68320a51e90d180e8d2cf94c"
+  },
+  "room": {
+    "$oid": "6832265d4a96fcb618bc3a63"
+  },
+  "checkIn": {
+    "$date": "2025-05-25T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-05-27T18:30:00.000Z"
+  },
+  "totalPrice": 9998,
+  "status": "cancelled",
+  "paymentStatus": "refunded",
+  "specialRequests": "Guests: 2 Adult(s), 0 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-25T03:28:34.896Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:17:01.318Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68329f7946cc35b08b27d0ba"
+  },
+  "user": {
+    "$oid": "68320a51e90d180e8d2cf94c"
+  },
+  "room": {
+    "$oid": "6832265d4a96fcb618bc3a62"
+  },
+  "checkIn": {
+    "$date": "2025-05-25T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-05-26T18:30:00.000Z"
+  },
+  "totalPrice": 3499,
+  "status": "cancelled",
+  "paymentStatus": "paid",
+  "specialRequests": "Guests: 1 Adult(s), 0 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-25T04:41:29.296Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:17:02.825Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6832a10ce78ff66733c9f6ec"
+  },
+  "user": {
+    "$oid": "68320a51e90d180e8d2cf94c"
+  },
+  "room": {
+    "$oid": "6832265d4a96fcb618bc3a61"
+  },
+  "checkIn": {
+    "$date": "2025-05-25T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-05-26T18:30:00.000Z"
+  },
+  "totalPrice": 2499,
+  "status": "cancelled",
+  "paymentStatus": "refunded",
+  "specialRequests": "Guests: 1 Adult(s), 0 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-25T04:48:12.695Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-25T15:27:20.893Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6832ae41a9cbb2b47518a60f"
+  },
+  "user": {
+    "$oid": "6832adf2a9cbb2b47518a605"
+  },
+  "room": {
+    "$oid": "6832265d4a96fcb618bc3a61"
+  },
+  "checkIn": {
+    "$date": "2025-05-26T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-05-28T18:30:00.000Z"
+  },
+  "totalPrice": 4998,
+  "status": "cancelled",
+  "paymentStatus": "refunded",
+  "specialRequests": "Guests: 1 Adult(s), 4 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-25T05:44:33.502Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-25T05:45:51.807Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6832f1f3a8ec143c2661be65"
+  },
+  "user": {
+    "$oid": "6832f1bca8ec143c2661be5d"
+  },
+  "room": {
+    "$oid": "6832265d4a96fcb618bc3a61"
+  },
+  "checkIn": {
+    "$date": "2025-05-26T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-06-16T18:30:00.000Z"
+  },
+  "totalPrice": 52479,
+  "status": "cancelled",
+  "paymentStatus": "paid",
+  "specialRequests": "Guests: 5 Adult(s), 4 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-25T10:33:23.497Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:17:06.443Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68330b1c6751d1dccbd9c509"
+  },
+  "user": {
+    "$oid": "68330aa96751d1dccbd9c501"
+  },
+  "room": {
+    "$oid": "6832fd6f48e046bff0892035"
+  },
+  "checkIn": {
+    "$date": "2025-05-30T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-06-23T18:30:00.000Z"
+  },
+  "totalPrice": 215976,
+  "status": "cancelled",
+  "paymentStatus": "paid",
+  "specialRequests": "Guests: 4 Adult(s), 3 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-25T12:20:44.780Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:17:07.740Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68330e076751d1dccbd9c5dc"
+  },
+  "user": {
+    "$oid": "68330de56751d1dccbd9c5ce"
+  },
+  "room": {
+    "$oid": "6832fd6f48e046bff0892032"
+  },
+  "checkIn": {
+    "$date": "2025-05-25T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-05-26T18:30:00.000Z"
+  },
+  "totalPrice": 3499,
+  "status": "cancelled",
+  "paymentStatus": "paid",
+  "specialRequests": "Guests: 1 Adult(s), 0 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-25T12:33:11.604Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:17:09.306Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "683334771f9dcddcf8552d9b"
+  },
+  "user": {
+    "$oid": "6833322db8d4e6171d242a77"
+  },
+  "room": {
+    "$oid": "6832fd6f48e046bff0892031"
+  },
+  "checkIn": {
+    "$date": "2025-05-24T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-05-25T18:30:00.000Z"
+  },
+  "totalPrice": 2499,
+  "status": "cancelled",
+  "paymentStatus": "paid",
+  "specialRequests": "Guests: 3 Adult(s), 1 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-25T15:17:11.269Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:17:10.368Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "683334ed1f9dcddcf8552db2"
+  },
+  "user": {
+    "$oid": "6833322db8d4e6171d242a77"
+  },
+  "room": {
+    "$oid": "6832fd6f48e046bff0892036"
+  },
+  "checkIn": {
+    "$date": "2025-05-27T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-05-30T18:30:00.000Z"
+  },
+  "totalPrice": 22497,
+  "status": "cancelled",
+  "paymentStatus": "paid",
+  "specialRequests": "Guests: 1 Adult(s), 0 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-25T15:19:09.796Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:17:11.860Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834a40496986d129f83afa9"
+  },
+  "user": {
+    "$oid": "68320a51e90d180e8d2cf94c"
+  },
+  "room": {
+    "$oid": "6832fd6f48e046bff0892031"
+  },
+  "checkIn": {
+    "$date": "2025-05-26T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-05-27T18:30:00.000Z"
+  },
+  "totalPrice": 2499,
+  "status": "completed",
+  "paymentStatus": "paid",
+  "specialRequests": "Guests: 1 Adult(s), 0 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-26T17:25:24.585Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:28:30.036Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834a56296986d129f83b018"
+  },
+  "user": {
+    "$oid": "68320a51e90d180e8d2cf94c"
+  },
+  "room": {
+    "$oid": "6832fd6f48e046bff0892032"
+  },
+  "checkIn": {
+    "$date": "2025-05-26T18:30:00.000Z"
+  },
+  "checkOut": {
+    "$date": "2025-05-27T18:30:00.000Z"
+  },
+  "totalPrice": 3499,
+  "status": "confirmed",
+  "paymentStatus": "pending",
+  "specialRequests": "Guests: 1 Adult(s), 0 Child(ren)",
+  "createdAt": {
+    "$date": "2025-05-26T17:31:14.271Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:55:18.055Z"
+  },
+  "__v": 0
+}]
